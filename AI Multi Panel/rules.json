@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "x-frame-options",                     "operation": "remove" },
+        { "header": "X-Frame-Options",                     "operation": "remove" },
+        { "header": "content-security-policy",             "operation": "remove" },
+        { "header": "Content-Security-Policy",             "operation": "remove" },
+        { "header": "content-security-policy-report-only", "operation": "remove" },
+        { "header": "cross-origin-opener-policy",          "operation": "remove" },
+        { "header": "cross-origin-embedder-policy",        "operation": "remove" },
+        { "header": "cross-origin-resource-policy",        "operation": "remove" },
+        { "header": "x-content-type-options",              "operation": "remove" },
+        {
+          "header": "permissions-policy",
+          "operation": "set",
+          "value": "geolocation=*, microphone=*, camera=*, clipboard-write=*, clipboard-read=*, fullscreen=*, downloads=*, display-capture=*, autoplay=*, picture-in-picture=*, web-share=*, accelerometer=*, gyroscope=*, presentation=*"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*",
+      "resourceTypes": ["sub_frame"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "cross-origin-resource-policy", "operation": "remove" },
+        { "header": "cross-origin-embedder-policy",  "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*",
+      "resourceTypes": ["xmlhttprequest", "other", "script", "stylesheet", "image", "font", "media"]
+    }
+  }
+]

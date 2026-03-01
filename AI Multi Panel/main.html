@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Multi Panel</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <!-- ── トップバー ──────────────────────────────────────────── -->
+  <header id="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">AI Multi <span class="logo-pro">Panel</span></span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="panel-count-control">
+        <button id="btn-remove-panel" class="count-btn" title="パネルを減らす">−</button>
+        <span id="panel-count-label" class="count-label">2 パネル</span>
+        <button id="btn-add-panel" class="count-btn" title="パネルを追加">＋</button>
+      </div>
+      <div class="layout-control" id="layout-control"><!-- JS生成 --></div>
+    </div>
+
+    <div class="topbar-right">
+      <button id="btn-toggle-input" class="icon-btn" title="入力エリアを開閉">✏️ 入力</button>
+      <button id="btn-help" class="icon-btn" title="使い方・機能一覧">？ ヘルプ</button>
+      <button id="btn-settings" class="icon-btn" title="管理者設定・カスタマイズ">⚙ 設定</button>
+      <div id="timer-widget" class="timer-widget" title="現在時刻">
+        <span class="timer-icon">🕐</span>
+        <span id="timer-display" class="timer-display">--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── 入力エリア ──────────────────────────────────────────── -->
+  <div id="input-area">
+    <div class="input-row">
+      <div class="textarea-wrap">
+        <textarea id="shared-input" placeholder="ここにテキストを入力 → 「全パネルに送信」（Ctrl+Enter）"></textarea>
+        <div id="input-resize-handle"></div>
+      </div>
+      <div class="input-actions">
+        <button id="btn-send-all" class="btn-primary">▶ 全パネルに送信</button>
+        <button id="btn-execute-all" class="btn-execute">⚡ 全パネル実行</button>
+        <button id="btn-clear" class="btn-ghost">クリア</button>
+      </div>
+    </div>
+    <div id="send-status" class="send-status hidden"></div>
+  </div>
+
+  <!-- ── パネルグリッド ──────────────────────────────────────── -->
+  <div id="panels-container"></div>
+
+  <!-- ── ヘルプモーダル ──────────────────────────────────────── -->
+  <div id="help-modal" class="modal-overlay hidden">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <h2>📖 使い方ガイド — AI Multi Panel</h2>
+        <button id="btn-close-help" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-body modal-scroll">
+
+        <div class="help-section">
+          <h3>🎯 AI Multi Panel とは？</h3>
+          <p>複数のAIサービス（Gemini・Claude・Genspark・ChatGPT・Copilot・Manus）を1つのウィンドウに並べて同時に使えるChrome拡張です。同じ質問を全AIに一括送信して、回答を比較できます。</p>
+        </div>
+
+        <div class="help-section">
+          <h3>⚙️ 基本操作</h3>
+          <div class="help-table">
+            <div class="help-row">
+              <div class="help-key">✏️ 入力ボタン</div>
+              <div class="help-val">上部の共有入力エリアを開閉します。テキストを入力して「全パネルに送信」を押すと、すべてのAIパネルに同時に送信されます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">▶ 全パネルに送信</div>
+              <div class="help-val">入力したテキストをすべてのiFrameパネルに自動入力します。<kbd>Ctrl+Enter</kbd>（Mac: <kbd>⌘+Enter</kbd>）のショートカットも使えます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">⚡ 全パネル実行</div>
+              <div class="help-val">各パネルの送信ボタンを自動クリックして、入力済みのプロンプトを一括で実行します。「全パネルに送信」でテキストを入力した後に使います。<kbd>Ctrl+Shift+Enter</kbd> のショートカットも使えます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">− / ＋ ボタン</div>
+              <div class="help-val">表示するパネル数を1〜4の間で増減します。パネルを追加すると、まだ使っていないサービスが自動で割り当てられます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">レイアウトボタン</div>
+              <div class="help-val">パネルの並び方を変えます。2パネルなら「左右」「上下」、4パネルなら「2×2グリッド」「横4列」「縦4列」「メイン+3サブ」から選べます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">パネル内サービス名ボタン</div>
+              <div class="help-val">各パネルの左上にあるボタンをクリックすると、そのパネルで表示するAIサービスをいつでも変更できます。同じサービスを複数パネルで使うことも可能です（例：Claude × 2）。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">境界線ドラッグ</div>
+              <div class="help-val">パネル間の境界線（青い線）をドラッグして、各パネルの表示比率を自由に調整できます。設定は自動保存されます。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>🔲 パネル内のコントロール</h3>
+          <div class="help-table">
+            <div class="help-row">
+              <div class="help-key">− / ＋（ズーム）</div>
+              <div class="help-val">iFrameの表示倍率を40〜160%の間で調整します。表示が小さすぎる・大きすぎる場合に使用します。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">↺（リロード）</div>
+              <div class="help-val">そのパネルのiFrameを再読み込みします。ページが固まったときなどに使用します。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">↗（新しいタブ）</div>
+              <div class="help-val">そのAIサービスを新しいタブで開きます。iFrameで使えないサービスでも通常通り利用できます。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">⛶（最大化）</div>
+              <div class="help-val">そのパネルを全画面表示します。<kbd>Esc</kbd>キーで元に戻ります。</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">✕（パネルを閉じる）</div>
+              <div class="help-val">そのパネルを削除します。最低1パネルは必ず残ります。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>📋 iFrameに対応していないサービスについて</h3>
+          <p>ChatGPT・Copilot・Manus はセキュリティ上の理由でiFrameへの埋め込みをブロックしています。これらを選択したパネルでは、「全パネルに送信」を押すと、テキストが<strong>自動的にクリップボードにコピー</strong>されます。</p>
+          <div class="help-steps">
+            <div class="help-step"><span class="step-num">1</span> 入力エリアにテキストを入力</div>
+            <div class="help-step"><span class="step-num">2</span> 「全パネルに送信」をクリック（テキストが自動コピーされます）</div>
+            <div class="help-step"><span class="step-num">3</span> パネル内の「新しいタブで開く →」ボタンをクリック</div>
+            <div class="help-step"><span class="step-num">4</span> 開いたタブの入力欄で <kbd>Ctrl+V</kbd> して貼り付け</div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>💾 設定の保存について</h3>
+          <p>パネル数・レイアウト・各パネルのサービス設定・パネルサイズ比率・入力エリアの高さは、ブラウザのlocalStorageに自動保存されます。次回起動時も同じ状態で再開できます。</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 管理者設定モーダル ────────────────────────────────── -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <h2>⚙️ 管理者設定 — カスタマイズガイド</h2>
+        <button id="btn-close-settings" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-body modal-scroll">
+
+        <div class="help-section">
+          <h3>📁 ファイル構成</h3>
+          <div class="file-tree">
+            <div class="file-item file-folder">📂 ai-multi-panel/（拡張機能フォルダ）</div>
+            <div class="file-item file-js">　├ <span class="file-hl">main.js</span> — サービス定義・全ロジック <span class="badge-edit">★ 主な編集対象</span></div>
+            <div class="file-item">　├ main.html — UI骨格（通常変更不要）</div>
+            <div class="file-item">　├ main.css — スタイル（見た目の変更）</div>
+            <div class="file-item file-js">　├ <span class="file-hl">rules.json</span> — iFrame許可ルール <span class="badge-edit">新サービス追加時</span></div>
+            <div class="file-item">　├ manifest.json — 拡張機能の基本設定</div>
+            <div class="file-item">　└ content-scripts/universal-helper.js — テキスト自動入力スクリプト</div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>🔧 サービスのURLを変更する</h3>
+          <p>例：GeminiのURLを変えたい、別のアカウントに切り替えたいなど</p>
+          <div class="code-block">
+<span class="code-comment">// main.js の最上部 SERVICES 配列を編集します</span>
+const SERVICES = [
+  { id: 'gemini',
+    name: 'Gemini',
+    url: '<span class="code-hl">'https://gemini.google.com/'</span>, <span class="code-comment">← ここを変更</span>
+    color: '#4285F4',
+    iframeOk: true },
+  ...
+];</div>
+          <ul class="help-list">
+            <li><strong>url</strong>：ブラウザで開くURL（変更するのはここだけでOK）</li>
+            <li><strong>name</strong>：パネルヘッダーやドロップダウンに表示される名前</li>
+            <li><strong>color</strong>：パネル左端のカラーバーの色（HEXカラーコード）</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>➕ 新しいAIサービスを追加する</h3>
+          <p><strong>Step 1 ：</strong> <code>main.js</code> の SERVICES 配列に追記します</p>
+          <div class="code-block">
+<span class="code-comment">// SERVICES 配列に新しいエントリを追加</span>
+{ id: '<span class="code-hl">myai</span>',          <span class="code-comment">← 英数字のID（ユニーク）</span>
+  name: '<span class="code-hl">My AI</span>',       <span class="code-comment">← 表示名</span>
+  url: '<span class="code-hl">https://my-ai.com/chat</span>',  <span class="code-comment">← サービスURL</span>
+  color: '<span class="code-hl">#E91E63</span>',    <span class="code-comment">← カラーコード</span>
+  iframeOk: <span class="code-hl">true</span> },    <span class="code-comment">← iFrame埋め込み可否（※下記参照）</span></div>
+
+          <p><strong>Step 2 ：</strong> <code>iframeOk: true</code> にする場合、<code>rules.json</code> にルールを追加します</p>
+          <div class="code-block">
+<span class="code-comment">// rules.json — 配列の末尾に追加（IDは既存最大値+1）</span>
+{
+  "id": <span class="code-hl">9</span>,
+  "priority": 2,
+  "action": {
+    "type": "modifyHeaders",
+    "responseHeaders": [
+      { "header": "x-frame-options", "operation": "remove" },
+      { "header": "content-security-policy", "operation": "remove" }
+    ]
+  },
+  "condition": {
+    "urlFilter": "<span class="code-hl">*://my-ai.com/*</span>",
+    "resourceTypes": ["sub_frame"]
+  }
+}</div>
+
+          <p><strong>Step 3 ：</strong> Chrome拡張の管理画面で「再読み込み」ボタンをクリックして変更を反映します</p>
+          <div class="help-steps">
+            <div class="help-step"><span class="step-num">1</span> <code>chrome://extensions</code> を開く</div>
+            <div class="help-step"><span class="step-num">2</span> AI Multi Panel のカードにある 🔄 ボタンをクリック</div>
+            <div class="help-step"><span class="step-num">3</span> AI Multi Panel を開き直す</div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>🎨 見た目をカスタマイズする</h3>
+          <div class="help-table">
+            <div class="help-row">
+              <div class="help-key">背景色・テーマ色</div>
+              <div class="help-val"><code>main.css</code> の <code>:root</code> 内の CSS変数を変更します。<code>--color-bg</code>（背景）・<code>--color-accent</code>（アクセント色）など</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">トップバーの高さ</div>
+              <div class="help-val"><code>--topbar-h: 28px</code> の値を変更します</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">パネルヘッダーの高さ</div>
+              <div class="help-val"><code>--panel-header-h: 26px</code> の値を変更します</div>
+            </div>
+            <div class="help-row">
+              <div class="help-key">デフォルトパネル構成</div>
+              <div class="help-val"><code>main.js</code> の <code>defaultState()</code> 内の <code>panels</code> 配列を変更します</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3>⚠️ iFrameOk の判定について</h3>
+          <p>サービスがiFrameで表示できるかどうかは、実際にブラウザで確認が必要です。以下の場合は <code>iframeOk: false</code>（クリップボード連携モード）に設定してください：</p>
+          <ul class="help-list">
+            <li>ページが真っ白になる・「埋め込みは許可されていません」と表示される</li>
+            <li>ログイン画面でリダイレクトループが起きる</li>
+            <li><code>Content-Security-Policy</code> や <code>X-Frame-Options: DENY</code> を強制しているサービス</li>
+          </ul>
+        </div>
+
+        <div class="settings-ver">
+          AI Multi Panel v2.5.0 — <span id="ext-version">main.js を確認</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── トースト ────────────────────────────────────────────── -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
